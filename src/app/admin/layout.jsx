@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -19,52 +18,38 @@ export default function AdminLayout({ children }) {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-
-    // Jika tidak ada session, lempar ke login
     if (!session) {
       router.push("/auth/login");
       return;
     }
-
     setUser(session.user);
-
-    // ✅ PERBAIKAN 1: Hapus 'totp_enabled' dari select
     const { data: profileData, error } = await supabase
       .from("profiles")
-      .select("username, is_admin") // Hanya ambil username dan is_admin
+      .select("username, is_admin")
       .eq("id", session.user.id)
       .maybeSingle();
-
-    // ✅ PERBAIKAN 2: Tangani error jika query gagal (misal: RLS block)
     if (error) {
       console.error("Error fetching profile:", error.message);
       alert("Terjadi kesalahan saat memuat data profil.");
       router.push("/");
       return;
     }
-
-    // Cek apakah user adalah admin
     if (!profileData?.is_admin) {
       alert("Akses ditolak! Halaman ini hanya untuk admin.");
       router.push("/");
       return;
     }
-
     setProfile(profileData);
-
-    // ✅ PERBAIKAN 3: HAPUS SEMUA LOGIKA REDIRECT 2FA (totp_enabled)
-    // Karena kita ingin langsung masuk dashboard, kita cukup set loading ke false.
-
-    setIsLoading(false); // Ini akan me-render halaman admin
+    setIsLoading(false);
   };
 
-  if (isLoading) {
+  if (isLoading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      // 🎨 UI UPDATE: Loading dengan gradien halus
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
-  }
 
   const menuItems = [
     {
@@ -127,7 +112,8 @@ export default function AdminLayout({ children }) {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    // 🎨 UI UPDATE: Background gradien sangat halus agar tidak putih polos
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100/50">
       <Aside
         title="Admin Panel"
         menuItems={menuItems}
@@ -137,7 +123,6 @@ export default function AdminLayout({ children }) {
           isAdmin: true,
         }}
       />
-
       <div className="flex-1 overflow-auto">
         <main className="p-8">{children}</main>
       </div>

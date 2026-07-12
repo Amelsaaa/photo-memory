@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -20,59 +19,40 @@ export default function TwoFactorSettingsPage() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-
     if (!session) {
       router.push("/auth/login");
       return;
     }
-
     setUser(session.user);
-
     const { data: profileData } = await supabase
       .from("profiles")
       .select("username, is_admin, totp_enabled")
       .eq("id", session.user.id)
       .maybeSingle();
-
     if (!profileData?.is_admin) {
       router.push("/");
       return;
     }
-
     setProfile(profileData);
     setIsLoading(false);
   };
 
-  // Fungsi untuk menonaktifkan 2FA
   const handleDisable = async () => {
-    if (!confirm("Nonaktifkan 2FA? Akun Anda akan kurang aman.")) {
-      return;
-    }
-
+    if (!confirm("Nonaktifkan 2FA? Akun Anda akan kurang aman.")) return;
     setIsProcessing(true);
-
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({
-          totp_secret: null,
-          totp_enabled: false,
-        })
+        .update({ totp_secret: null, totp_enabled: false })
         .eq("id", user.id);
-
       if (error) throw error;
-
       sessionStorage.removeItem(`2fa_verified_${user.id}`);
-
       alert("✅ 2FA berhasil dinonaktifkan.");
-
-      // Refresh profile data
       const { data: updatedProfile } = await supabase
         .from("profiles")
         .select("totp_enabled")
         .eq("id", user.id)
         .maybeSingle();
-
       setProfile((prev) => ({
         ...prev,
         totp_enabled: updatedProfile?.totp_enabled || false,
@@ -85,34 +65,30 @@ export default function TwoFactorSettingsPage() {
     }
   };
 
-  // Fungsi untuk mengaktifkan 2FA (redirect ke setup)
   const handleEnable = () => {
     router.push("/2fa/setup");
   };
 
-  if (isLoading) {
+  if (isLoading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
-  }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    // 🎨 UI UPDATE: Background gradien halus
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-6">
+        {/* 🎨 UI UPDATE: Card dengan rounded-2xl dan shadow lembut */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 p-8">
+          <div className="flex items-center gap-4 mb-8">
+            {/* 🎨 UI UPDATE: Ikon dengan ring putih dan shadow */}
             <div
-              className={`w-14 h-14 rounded-full flex items-center justify-center ${
-                profile?.totp_enabled ? "bg-green-100" : "bg-red-100"
-              }`}
+              className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white ${profile?.totp_enabled ? "bg-gradient-to-br from-green-400 to-emerald-500" : "bg-gradient-to-br from-red-400 to-rose-500"}`}
             >
               <svg
-                className={`w-7 h-7 ${
-                  profile?.totp_enabled ? "text-green-600" : "text-red-600"
-                }`}
+                className="w-8 h-8 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -126,54 +102,44 @@ export default function TwoFactorSettingsPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
                 Two-Factor Authentication
               </h1>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 font-medium">
                 Kelola keamanan tambahan untuk akun admin
               </p>
             </div>
           </div>
 
-          {/* Status Card */}
+          {/* 🎨 UI UPDATE: Status card dengan rounded-xl dan shadow-inner */}
           <div
-            className={`rounded-lg p-6 mb-6 border-2 ${
-              profile?.totp_enabled
-                ? "bg-green-50 border-green-200"
-                : "bg-red-50 border-red-200"
-            }`}
+            className={`rounded-xl p-6 mb-6 border-2 shadow-inner ${profile?.totp_enabled ? "bg-green-50/50 border-green-200" : "bg-red-50/50 border-red-200"}`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-1">
+                <p className="text-sm font-semibold text-gray-600 mb-1">
                   Status 2FA
                 </p>
                 <p
-                  className={`text-2xl font-bold ${
-                    profile?.totp_enabled ? "text-green-700" : "text-red-700"
-                  }`}
+                  className={`text-3xl font-extrabold tracking-tight ${profile?.totp_enabled ? "text-green-700" : "text-red-700"}`}
                 >
                   {profile?.totp_enabled ? "✅ Aktif" : "❌ Tidak Aktif"}
                 </p>
               </div>
               <div
-                className={`px-4 py-2 rounded-full text-sm font-semibold ${
-                  profile?.totp_enabled
-                    ? "bg-green-200 text-green-800"
-                    : "bg-red-200 text-red-800"
-                }`}
+                className={`px-4 py-2 rounded-full text-sm font-bold shadow-sm ${profile?.totp_enabled ? "bg-green-100 text-green-800 ring-1 ring-green-200" : "bg-red-100 text-red-800 ring-1 ring-red-200"}`}
               >
                 {profile?.totp_enabled ? "Terlindungi" : "Rentan"}
               </div>
             </div>
           </div>
 
-          {/* Info Box */}
           {profile?.totp_enabled ? (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            // 🎨 UI UPDATE: Info box dengan rounded-xl
+            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 mb-6">
               <div className="flex gap-3">
                 <svg
-                  className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
+                  className="w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -184,8 +150,8 @@ export default function TwoFactorSettingsPage() {
                   />
                 </svg>
                 <div className="text-sm text-blue-800">
-                  <p className="font-semibold mb-1">2FA Sedang Aktif</p>
-                  <p className="text-blue-700">
+                  <p className="font-bold mb-1">2FA Sedang Aktif</p>
+                  <p className="text-blue-700 leading-relaxed">
                     Setiap kali Anda login, Anda akan diminta memasukkan kode 6
                     digit dari aplikasi authenticator. Ini melindungi akun Anda
                     dari akses tidak sah.
@@ -194,10 +160,10 @@ export default function TwoFactorSettingsPage() {
               </div>
             </div>
           ) : (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-5 mb-6">
               <div className="flex gap-3">
                 <svg
-                  className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"
+                  className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5"
                   fill="currentColor"
                   viewBox="0 0 20 20"
                 >
@@ -207,9 +173,9 @@ export default function TwoFactorSettingsPage() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <div className="text-sm text-yellow-800">
-                  <p className="font-semibold mb-1">2FA Belum Aktif</p>
-                  <p className="text-yellow-700">
+                <div className="text-sm text-amber-800">
+                  <p className="font-bold mb-1">2FA Belum Aktif</p>
+                  <p className="text-amber-700 leading-relaxed">
                     Akun Anda hanya dilindungi oleh password. Aktifkan 2FA untuk
                     menambahkan lapisan keamanan ekstra dengan kode 6 digit yang
                     berubah setiap 30 detik.
@@ -219,7 +185,6 @@ export default function TwoFactorSettingsPage() {
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="flex gap-3">
             {profile?.totp_enabled ? (
               <>
@@ -255,68 +220,35 @@ export default function TwoFactorSettingsPage() {
             )}
           </div>
 
-          {/* Benefits List */}
-          <div className="mt-8 pt-6 border-t border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          <div className="mt-8 pt-6 border-t border-gray-100">
+            <h3 className="text-sm font-bold text-gray-900 mb-4 tracking-tight">
               Keuntungan Mengaktifkan 2FA:
             </h3>
-            <ul className="space-y-2">
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <svg
-                  className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
+            <ul className="space-y-3">
+              {[
+                "Melindungi akun dari pencurian password",
+                "Kode berubah setiap 30 detik (sulit diretas)",
+                "Standar keamanan enterprise-grade",
+                "Mencegah akses tidak sah bahkan jika password bocor",
+              ].map((item, i) => (
+                <li
+                  key={i}
+                  className="flex items-start gap-3 text-sm text-gray-600 font-medium"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Melindungi akun dari pencurian password</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <svg
-                  className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Kode berubah setiap 30 detik (sulit diretas)</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <svg
-                  className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Standar keamanan enterprise-grade</span>
-              </li>
-              <li className="flex items-start gap-2 text-sm text-gray-600">
-                <svg
-                  className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span>Mencegah akses tidak sah bahkan jika password bocor</span>
-              </li>
+                  <svg
+                    className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>{item}</span>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

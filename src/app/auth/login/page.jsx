@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -13,51 +12,33 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-
   const router = useRouter();
 
-  // Fungsi untuk menangani proses login email/password
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
-
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-
       if (error) {
-        if (error.message === "Invalid login credentials") {
+        if (error.message === "Invalid login credentials")
           setError("Email atau password yang kamu masukkan salah.");
-        } else if (error.message === "Email not confirmed") {
+        else if (error.message === "Email not confirmed")
           setError("Email belum diverifikasi. Silakan cek inbox kamu.");
-        } else {
-          setError(error.message);
-        }
+        else setError(error.message);
       } else {
-        // ✅ CHECK: Apakah user ini admin?
         const { data: profileData } = await supabase
           .from("profiles")
           .select("is_admin, totp_enabled")
           .eq("id", data.user.id)
           .maybeSingle();
-
         if (profileData?.is_admin) {
-          // ✅ ADMIN: Redirect ke 2FA
-          if (profileData.totp_enabled) {
-            // 2FA sudah aktif → verifikasi kode
-            router.push("/2fa/verify");
-          } else {
-            // 2FA belum aktif → setup pertama kali
-            router.push("/2fa/setup");
-          }
-        } else {
-          // ✅ USER BIASA: Redirect ke beranda
-          router.push("/");
-        }
-
+          if (profileData.totp_enabled) router.push("/2fa/verify");
+          else router.push("/2fa/setup");
+        } else router.push("/");
         router.refresh();
       }
     } catch (err) {
@@ -68,30 +49,22 @@ export default function LoginPage() {
     }
   };
 
-  // ✅ FUNGSI BARU: Login dengan Google
   const handleGoogleLogin = async () => {
     setError("");
     setIsGoogleLoading(true);
-
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
           scopes: "email profile",
-          // ✅ Pastikan menggunakan implicit flow
-          queryParams: {
-            access_type: "offline",
-            prompt: "consent",
-          },
+          queryParams: { access_type: "offline", prompt: "consent" },
         },
       });
-
       if (error) {
         setError("Gagal login dengan Google: " + error.message);
         setIsGoogleLoading(false);
       }
-      // Jika berhasil, browser akan otomatis redirect ke Google
     } catch (err) {
       console.error("Google login error:", err);
       setError("Terjadi kesalahan sistem. Silakan coba lagi.");
@@ -100,26 +73,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-        {/* Header */}
+    // 🎨 UI UPDATE: Background gradien全屏
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
+      {/* 🎨 UI UPDATE: Card glassmorphism dengan rounded-3xl */}
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/50 ring-1 ring-black/5">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
             Selamat Datang Kembali
           </h1>
-          <p className="text-gray-500 mt-2">
+          <p className="text-gray-500 mt-2 font-medium">
             Masuk untuk melanjutkan ke Photo Memory
           </p>
         </div>
 
-        {/* ✅ TOMBOL GOOGLE LOGIN */}
         <Button
           type="button"
           variant="outline"
           size="lg"
           onClick={handleGoogleLogin}
           isLoading={isGoogleLoading}
-          className="w-full mb-6 flex items-center justify-center gap-3"
+          className="w-full mb-6 flex items-center justify-center gap-3 !rounded-xl"
           disabled={isLoading}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -140,20 +113,20 @@ export default function LoginPage() {
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
             />
           </svg>
-          <span>Masuk dengan Google</span>
+          <span className="font-bold">Masuk dengan Google</span>
         </Button>
 
-        {/* ✅ DIVIDER "ATAU" */}
         <div className="relative mb-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-200"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-3 bg-white text-gray-500">atau</span>
+            <span className="px-4 bg-white/80 backdrop-blur-sm text-gray-500 rounded-full font-semibold ring-1 ring-gray-100">
+              atau
+            </span>
           </div>
         </div>
 
-        {/* Form Login Email/Password */}
         <form onSubmit={handleLogin} className="space-y-5">
           <Form
             label="Email"
@@ -165,7 +138,6 @@ export default function LoginPage() {
             required
             disabled={isGoogleLoading}
           />
-
           <Form
             label="Password"
             type="password"
@@ -176,10 +148,8 @@ export default function LoginPage() {
             required
             disabled={isGoogleLoading}
           />
-
-          {/* Error Message Box */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+            <div className="bg-red-50/50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2 font-medium">
               <svg
                 className="w-5 h-5 flex-shrink-0"
                 fill="currentColor"
@@ -194,36 +164,32 @@ export default function LoginPage() {
               <span>{error}</span>
             </div>
           )}
-
-          {/* Tombol Submit Email/Password */}
           <Button
             type="submit"
             variant="primary"
             size="lg"
             isLoading={isLoading}
-            className="w-full"
+            className="w-full !rounded-xl"
             disabled={isGoogleLoading}
           >
             Masuk
           </Button>
         </form>
 
-        {/* Link ke Halaman Register */}
-        <p className="text-center text-sm text-gray-600 mt-6">
+        <p className="text-center text-sm text-gray-600 mt-6 font-medium">
           Belum punya akun?{" "}
           <Link
             href="/auth/register"
-            className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+            className="font-bold text-blue-600 hover:text-blue-800 transition-colors"
           >
             Daftar di sini
           </Link>
         </p>
 
-        {/* Info Admin */}
         <div className="mt-6 pt-6 border-t border-gray-100 text-center">
-          <p className="text-xs text-gray-400">
-            <span className="font-semibold">Info UAS:</span> Login sebagai Admin
-            untuk mengakses fitur Takedown.
+          <p className="text-xs text-gray-400 font-semibold">
+            <span className="font-extrabold text-gray-500">Info UAS:</span>{" "}
+            Login sebagai Admin untuk mengakses fitur Takedown.
           </p>
         </div>
       </div>

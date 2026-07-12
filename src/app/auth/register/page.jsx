@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -14,14 +13,11 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
   const router = useRouter();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     setError("");
-
-    // 1. Validasi Client-Side
     if (password !== confirmPassword) {
       setError("Password dan konfirmasi password tidak cocok.");
       return;
@@ -34,35 +30,20 @@ export default function RegisterPage() {
       setError("Username tidak boleh kosong.");
       return;
     }
-
     setIsLoading(true);
-
     try {
-      // 2. Daftarkan user ke Supabase Auth
-      // PENTING: Kirimkan username sebagai 'data' (metadata) agar Trigger database bisa menangkapnya
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            username: username,
-          },
-        },
+        options: { data: { username: username } },
       });
-
       if (error) {
-        if (error.message.includes("User already registered")) {
+        if (error.message.includes("User already registered"))
           setError(
             "Email ini sudah terdaftar. Silakan login atau gunakan Google.",
           );
-        } else {
-          setError(error.message);
-        }
-      } else {
-        // 3. Sukses! Trigger database sudah otomatis membuat profil.
-        // Redirect ke halaman login dengan pesan sukses
-        router.push("/auth/login?registered=true");
-      }
+        else setError(error.message);
+      } else router.push("/auth/login?registered=true");
     } catch (err) {
       console.error(err);
       setError("Terjadi kesalahan sistem. Silakan coba lagi.");
@@ -72,18 +53,22 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-        {/* Header */}
+    // 🎨 UI UPDATE: Background gradien全屏
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
+      {/* 🎨 UI UPDATE: Card glassmorphism dengan rounded-3xl */}
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/50 ring-1 ring-black/5">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Buat Akun Baru</h1>
-          <p className="text-gray-500 mt-2">Bergabung dan bagikan kenanganmu</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+            Buat Akun Baru
+          </h1>
+          <p className="text-gray-500 mt-2 font-medium">
+            Bergabung dan bagikan kenanganmu
+          </p>
         </div>
 
-        {/* Info Box: Alternatif Google Login */}
-        <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6 flex items-start gap-3">
+        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-6 flex items-start gap-3">
           <svg
-            className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+            className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -95,11 +80,11 @@ export default function RegisterPage() {
               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <p className="text-sm text-blue-800">
+          <p className="text-sm text-blue-800 font-medium">
             Ingin lebih cepat? Kamu bisa langsung{" "}
             <Link
               href="/auth/login"
-              className="font-semibold underline hover:text-blue-900"
+              className="font-bold underline hover:text-blue-900"
             >
               Login dengan Google
             </Link>{" "}
@@ -107,7 +92,6 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Form Register */}
         <form onSubmit={handleRegister} className="space-y-5">
           <Form
             label="Username"
@@ -118,7 +102,6 @@ export default function RegisterPage() {
             onChange={(e) => setUsername(e.target.value)}
             required
           />
-
           <Form
             label="Email"
             type="email"
@@ -128,7 +111,6 @@ export default function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-
           <Form
             label="Password"
             type="password"
@@ -138,7 +120,6 @@ export default function RegisterPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-
           <Form
             label="Konfirmasi Password"
             type="password"
@@ -148,10 +129,8 @@ export default function RegisterPage() {
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
-
-          {/* Error Message Box */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+            <div className="bg-red-50/50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2 font-medium">
               <svg
                 className="w-5 h-5 flex-shrink-0"
                 fill="currentColor"
@@ -166,25 +145,22 @@ export default function RegisterPage() {
               <span>{error}</span>
             </div>
           )}
-
-          {/* Tombol Submit */}
           <Button
             type="submit"
             variant="primary"
             size="lg"
             isLoading={isLoading}
-            className="w-full"
+            className="w-full !rounded-xl"
           >
             Daftar Sekarang
           </Button>
         </form>
 
-        {/* Link ke Halaman Login */}
-        <p className="text-center text-sm text-gray-600 mt-6">
+        <p className="text-center text-sm text-gray-600 mt-6 font-medium">
           Sudah punya akun?{" "}
           <Link
             href="/auth/login"
-            className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+            className="font-bold text-blue-600 hover:text-blue-800 transition-colors"
           >
             Masuk di sini
           </Link>

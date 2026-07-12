@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -23,30 +22,24 @@ export default function TwoFactorVerifyPage() {
     const {
       data: { session },
     } = await supabase.auth.getSession();
-
     if (!session) {
       router.push("/auth/login");
       return;
     }
-
     setUser(session.user);
-
     const { data: profileData } = await supabase
       .from("profiles")
       .select("username, is_admin, totp_enabled, totp_secret")
       .eq("id", session.user.id)
       .maybeSingle();
-
     if (!profileData?.is_admin) {
       router.push("/");
       return;
     }
-
     if (!profileData?.totp_enabled) {
       router.push("/2fa/setup");
       return;
     }
-
     const twoFactorVerified = sessionStorage.getItem(
       `2fa_verified_${session.user.id}`,
     );
@@ -54,7 +47,6 @@ export default function TwoFactorVerifyPage() {
       router.push("/admin");
       return;
     }
-
     setProfile(profileData);
     setIsLoading(false);
   };
@@ -62,26 +54,21 @@ export default function TwoFactorVerifyPage() {
   const handleVerify = async (code) => {
     setError("");
     setIsVerifying(true);
-
     try {
       const isValid = verifyTOTP(profile.totp_secret, code);
-
       if (!isValid) {
         const newAttempts = attempts + 1;
         setAttempts(newAttempts);
-
         if (newAttempts >= 5) {
           await supabase.auth.signOut();
           alert("Terlalu banyak percobaan gagal. Silakan login ulang.");
           router.push("/auth/login");
           return;
         }
-
         setError(`Kode tidak valid. Percobaan ${newAttempts}/5.`);
         setIsVerifying(false);
         return;
       }
-
       sessionStorage.setItem(`2fa_verified_${user.id}`, "true");
       router.push("/admin");
     } catch (err) {
@@ -98,21 +85,22 @@ export default function TwoFactorVerifyPage() {
     router.push("/auth/login");
   };
 
-  if (isLoading) {
+  if (isLoading)
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
-  }
 
   return (
+    // 🎨 UI UPDATE: Background gradien lembut
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+      {/* 🎨 UI UPDATE: Card dengan glassmorphism dan rounded-3xl */}
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/50 ring-1 ring-black/5">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-xl shadow-blue-500/20 ring-4 ring-white">
             <svg
-              className="w-8 h-8 text-white"
+              className="w-10 h-10 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -125,14 +113,14 @@ export default function TwoFactorVerifyPage() {
               />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
             Verifikasi 2 Langkah
           </h1>
-          <p className="text-gray-500 mt-2 text-sm">
+          <p className="text-gray-500 mt-2 text-sm font-medium">
             Masukkan kode 6 digit dari aplikasi authenticator Anda
           </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Login sebagai: <strong>{profile?.username}</strong>
+          <p className="text-xs text-gray-400 mt-2 font-semibold bg-gray-100/50 inline-block px-3 py-1 rounded-full">
+            Login sebagai: {profile?.username}
           </p>
         </div>
 
@@ -145,7 +133,7 @@ export default function TwoFactorVerifyPage() {
         </div>
 
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+          <div className="mb-4 bg-red-50/50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2 font-medium">
             <svg
               className="w-5 h-5 flex-shrink-0"
               fill="currentColor"
@@ -162,13 +150,13 @@ export default function TwoFactorVerifyPage() {
         )}
 
         {isVerifying && (
-          <p className="text-center text-sm text-blue-600 mb-4">
+          <p className="text-center text-sm text-blue-600 mb-4 font-bold animate-pulse">
             Memverifikasi...
           </p>
         )}
 
-        <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-6">
-          <p className="text-xs text-blue-700 text-center">
+        <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-6">
+          <p className="text-xs text-blue-700 text-center font-semibold">
             💡 Kode berubah setiap 30 detik. Pastikan waktu di HP Anda akurat.
           </p>
         </div>
@@ -176,7 +164,7 @@ export default function TwoFactorVerifyPage() {
         <div className="text-center">
           <button
             onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-sm text-gray-500 hover:text-gray-900 transition-colors font-semibold"
           >
             ← Kembali ke halaman login
           </button>
