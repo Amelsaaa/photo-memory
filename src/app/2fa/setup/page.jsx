@@ -99,8 +99,15 @@ export default function TwoFactorSetupPage() {
         router.push("/admin");
       }, 2000);
     } catch (err) {
-      console.error("Verify error:", err);
-      setError("Terjadi kesalahan. Silakan coba lagi.");
+      // ✅ PERBAIKAN: Tampilkan detail error asli dari Supabase di Console
+      console.error("Verify error detail:", err);
+
+      // ✅ PERBAIKAN: Ambil pesan error asli. Jika tidak ada, baru gunakan pesan default
+      const errorMsg = err.message || "Terjadi kesalahan sistem.";
+      console.error("Pesan error untuk user:", errorMsg);
+
+      // ✅ PERBAIKAN: Tampilkan pesan error asli ke UI agar user (dan Anda) tahu masalahnya
+      setError(errorMsg);
       setIsVerifying(false);
     }
   };

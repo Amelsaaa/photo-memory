@@ -85,8 +85,10 @@ export default function TwoFactorVerifyPage() {
       sessionStorage.setItem(`2fa_verified_${user.id}`, "true");
       router.push("/admin");
     } catch (err) {
-      console.error("Verify error:", err);
-      setError("Terjadi kesalahan. Silakan coba lagi.");
+      console.error("Verify error detail:", err);
+      const errorMsg = err.message || "Terjadi kesalahan sistem.";
+      console.error("Pesan error untuk user:", errorMsg);
+      setError(errorMsg);
       setIsVerifying(false);
     }
   };
