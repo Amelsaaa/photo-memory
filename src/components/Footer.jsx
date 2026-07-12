@@ -86,18 +86,6 @@ export default function Footer() {
             <Link href="/" className="hover:text-blue-600 transition-colors">
               Beranda
             </Link>
-            <Link
-              href="/about"
-              className="hover:text-blue-600 transition-colors"
-            >
-              Tentang
-            </Link>
-            <Link
-              href="/contact"
-              className="hover:text-blue-600 transition-colors"
-            >
-              Kontak
-            </Link>
           </div>
         </div>
 
