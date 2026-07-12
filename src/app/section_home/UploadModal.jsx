@@ -1,5 +1,5 @@
+// === src/app/section_home/UploadModal.jsx ===
 "use client";
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Form from "@/components/Form";
@@ -13,7 +13,6 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const [error, setError] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Reset state setiap modal dibuka
   useEffect(() => {
     if (isOpen) {
       setFile(null);
@@ -21,7 +20,6 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       setCaption("");
       setError("");
       setIsLoading(false);
-
       const getUser = async () => {
         const {
           data: { session },
@@ -32,27 +30,23 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
     }
   }, [isOpen]);
 
-  // Handle pilih file & buat preview
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      // Validasi ukuran (Maks 5MB)
       if (selectedFile.size > 5 * 1024 * 1024) {
         setError("Ukuran file maksimal 5MB.");
         setFile(null);
         setPreviewUrl(null);
         return;
       }
-      // Validasi tipe file
       if (!selectedFile.type.startsWith("image/")) {
         setError("File harus berupa gambar (JPG, PNG, dll).");
         setFile(null);
         setPreviewUrl(null);
         return;
       }
-
       setFile(selectedFile);
-      setPreviewUrl(URL.createObjectURL(selectedFile)); // Buat preview lokal
+      setPreviewUrl(URL.createObjectURL(selectedFile));
       setError("");
     }
   };
@@ -60,60 +54,39 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     if (!file) {
       setError("Silakan pilih foto terlebih dahulu.");
       return;
     }
-
     if (!currentUser) {
       setError("Sesi login telah berakhir. Silakan refresh halaman.");
       return;
     }
-
     setIsLoading(true);
-
     try {
-      // 1. Generate nama file yang unik agar tidak tertimpa
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-
-      // PENTING: Path HARUS format {user_id}/namafile agar sesuai dengan RLS Storage
       const filePath = `${currentUser.id}/${fileName}`;
-
-      // 2. Upload file ke Supabase Storage
       const { error: storageError } = await supabase.storage
         .from("photo_memories")
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: false,
-        });
-
-      if (storageError) {
+        .upload(filePath, file, { cacheControl: "3600", upsert: false });
+      if (storageError)
         throw new Error(`Gagal upload gambar: ${storageError.message}`);
-      }
-
-      // 3. Ambil Public URL dari file yang baru diupload
       const { data: urlData } = supabase.storage
         .from("photo_memories")
         .getPublicUrl(filePath);
-
       const imageUrl = urlData.publicUrl;
-
-      // 4. Insert data postingan ke tabel 'posts' di Database
-      const { error: dbError } = await supabase.from("posts").insert({
-        user_id: currentUser.id,
-        image_url: imageUrl,
-        caption: caption.trim() || null,
-      });
-
+      const { error: dbError } = await supabase
+        .from("posts")
+        .insert({
+          user_id: currentUser.id,
+          image_url: imageUrl,
+          caption: caption.trim() || null,
+        });
       if (dbError) {
-        // ROLLBACK: Jika gagal simpan ke DB, hapus file di storage agar tidak jadi sampah
         await supabase.storage.from("photo_memories").remove([filePath]);
         throw new Error(`Gagal menyimpan ke database: ${dbError.message}`);
       }
-
-      // 5. Sukses! Trigger refresh di halaman utama dan tutup modal
       onUploadSuccess();
       onClose();
     } catch (err) {
@@ -121,18 +94,18 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       setError(err.message || "Terjadi kesalahan saat mengupload foto.");
     } finally {
       setIsLoading(false);
-      if (previewUrl) URL.revokeObjectURL(previewUrl); // Bersihkan memory preview
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
-        {/* Header Modal */}
+    // 🎨 UI UPDATE: Backdrop lebih gelap, modal menggunakan glassmorphism dan rounded-3xl
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-black/5 rounded-3xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">
             Upload Kenangan Baru
           </h2>
           <button
@@ -156,11 +129,9 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
           </button>
         </div>
 
-        {/* Body Modal (Form) */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Preview Gambar (Muncul jika file sudah dipilih) */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
           {previewUrl && (
-            <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+            <div className="relative w-full h-56 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-inner">
               <img
                 src={previewUrl}
                 alt="Preview"
@@ -172,7 +143,7 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
                   setFile(null);
                   setPreviewUrl(null);
                 }}
-                className="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70 transition-colors"
+                className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/80 transition-colors"
                 disabled={isLoading}
               >
                 <svg
@@ -191,7 +162,6 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
               </button>
             </div>
           )}
-
           <Form
             label="Pilih Foto"
             type="file"
@@ -201,7 +171,6 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             required
             disabled={isLoading}
           />
-
           <Form
             label="Caption (Opsional)"
             type="textarea"
@@ -212,9 +181,8 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             rows={3}
             disabled={isLoading}
           />
-
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
               <svg
                 className="w-5 h-5 flex-shrink-0"
                 fill="currentColor"
@@ -229,8 +197,6 @@ export default function UploadModal({ isOpen, onClose, onUploadSuccess }) {
               <span>{error}</span>
             </div>
           )}
-
-          {/* Action Buttons */}
           <div className="flex gap-3 pt-2">
             <Button
               type="button"

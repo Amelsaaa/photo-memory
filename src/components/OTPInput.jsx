@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useRef, useEffect } from "react";
 
 export default function OTPInput({ length = 6, onComplete, disabled = false }) {
@@ -7,62 +6,41 @@ export default function OTPInput({ length = 6, onComplete, disabled = false }) {
   const inputRefs = useRef([]);
 
   useEffect(() => {
-    // Fokus ke input pertama saat mount
-    if (inputRefs.current[0]) {
-      inputRefs.current[0].focus();
-    }
+    if (inputRefs.current[0]) inputRefs.current[0].focus();
   }, []);
 
   const handleChange = (index, value) => {
-    // Hanya terima angka
     if (!/^\d*$/.test(value)) return;
-
     const newOtp = [...otp];
     newOtp[index] = value.substring(value.length - 1);
     setOtp(newOtp);
-
-    // Auto-focus ke input berikutnya
-    if (value && index < length - 1) {
-      inputRefs.current[index + 1].focus();
-    }
-
-    // Panggil onComplete jika semua terisi
+    if (value && index < length - 1) inputRefs.current[index + 1].focus();
     const otpString = newOtp.join("");
-    if (otpString.length === length && newOtp.every((d) => d !== "")) {
+    if (otpString.length === length && newOtp.every((d) => d !== ""))
       onComplete(otpString);
-    }
   };
 
   const handleKeyDown = (index, e) => {
-    // Backspace: pindah ke input sebelumnya jika kosong
-    if (e.key === "Backspace" && !otp[index] && index > 0) {
+    if (e.key === "Backspace" && !otp[index] && index > 0)
       inputRefs.current[index - 1].focus();
-    }
   };
-
   const handlePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData("text").trim();
     if (!/^\d+$/.test(pastedData)) return;
-
     const newOtp = [...otp];
-    for (let i = 0; i < length && i < pastedData.length; i++) {
+    for (let i = 0; i < length && i < pastedData.length; i++)
       newOtp[i] = pastedData[i];
-    }
     setOtp(newOtp);
-
-    // Fokus ke input setelah yang terakhir diisi
     const nextIndex = Math.min(pastedData.length, length - 1);
     inputRefs.current[nextIndex].focus();
-
     const otpString = newOtp.join("");
-    if (otpString.length === length && newOtp.every((d) => d !== "")) {
+    if (otpString.length === length && newOtp.every((d) => d !== ""))
       onComplete(otpString);
-    }
   };
 
   return (
-    <div className="flex gap-2 justify-center">
+    <div className="flex gap-3 justify-center">
       {otp.map((digit, index) => (
         <input
           key={index}
@@ -75,17 +53,8 @@ export default function OTPInput({ length = 6, onComplete, disabled = false }) {
           onKeyDown={(e) => handleKeyDown(index, e)}
           onPaste={handlePaste}
           disabled={disabled}
-          className={`
-            w-12 h-14 text-center text-2xl font-bold rounded-lg border-2
-            transition-all duration-200 outline-none
-            ${
-              digit
-                ? "border-blue-500 bg-blue-50 text-blue-700"
-                : "border-gray-300 bg-white text-gray-900"
-            }
-            focus:border-blue-600 focus:ring-2 focus:ring-blue-200
-            disabled:bg-gray-100 disabled:cursor-not-allowed
-          `}
+          // 🎨 UI UPDATE: Rounded-xl, shadow, dan gradien saat terisi
+          className={`w-12 h-14 text-center text-2xl font-bold rounded-xl border-2 transition-all duration-300 outline-none shadow-sm ${digit ? "border-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50 text-blue-700 shadow-md shadow-blue-500/10 scale-105" : "border-gray-300 bg-white text-gray-900 hover:border-gray-400"} focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 disabled:bg-gray-100 disabled:cursor-not-allowed`}
         />
       ))}
     </div>

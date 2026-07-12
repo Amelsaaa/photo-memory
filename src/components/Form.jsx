@@ -1,5 +1,4 @@
 "use client";
-
 import { useState } from "react";
 
 export default function Form({
@@ -14,28 +13,20 @@ export default function Form({
   required = false,
   disabled = false,
   className = "",
-  accept, // Khusus untuk input file (misal: "image/*")
-  rows = 4, // Khusus untuk textarea
+  accept,
+  rows = 4,
   ...props
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
-  // 1. Base Input Classes
-  const baseInputClasses = `
-    w-full px-4 py-2.5 rounded-lg border bg-white text-gray-900 placeholder-gray-400 
-    transition-all duration-200 focus:outline-none focus:ring-2 focus:border-transparent
-    disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
-  `;
-
-  // 2. Border Color (Merah jika error, abu-abu jika normal)
+  // 🎨 UI UPDATE: Focus ring lebih lembut (ring-4 ring-blue-500/20)
+  const baseInputClasses = `w-full px-4 py-3 rounded-xl border bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed`;
   const borderClasses = error
-    ? "border-red-300 focus:ring-red-500"
-    : "border-gray-300 focus:ring-blue-500 hover:border-gray-400";
+    ? "border-red-300 focus:ring-red-500/20 focus:border-red-500"
+    : "border-gray-300 hover:border-gray-400";
 
-  // 3. Render berdasarkan Type
   const renderInput = () => {
-    // --- TEXTAREA ---
-    if (type === "textarea") {
+    if (type === "textarea")
       return (
         <textarea
           id={id}
@@ -49,19 +40,13 @@ export default function Form({
           {...props}
         />
       );
-    }
 
-    // --- FILE UPLOAD (Custom UI) ---
-    if (type === "file") {
+    if (type === "file")
       return (
+        // 🎨 UI UPDATE: Area upload lebih besar, rounded-2xl, dan efek hover yang jelas
         <label
           htmlFor={id}
-          className={`
-            flex flex-col items-center justify-center w-full p-6 cursor-pointer 
-            border-2 border-dashed rounded-lg transition-colors
-            ${error ? "border-red-300 bg-red-50" : "border-gray-300 bg-gray-50 hover:bg-gray-100"}
-            ${disabled ? "opacity-60 cursor-not-allowed" : ""}
-          `}
+          className={`flex flex-col items-center justify-center w-full p-8 cursor-pointer border-2 border-dashed rounded-2xl transition-all duration-300 ${error ? "border-red-300 bg-red-50" : "border-gray-300 bg-gray-50/50 hover:bg-blue-50/50 hover:border-blue-400"} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}
         >
           <input
             type="file"
@@ -74,7 +59,7 @@ export default function Form({
             {...props}
           />
           <svg
-            className="w-8 h-8 text-gray-400 mb-2"
+            className="w-10 h-10 text-gray-400 mb-3"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -86,16 +71,14 @@ export default function Form({
               d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
             />
           </svg>
-          <p className="text-sm text-gray-600 font-medium">
+          <p className="text-sm text-gray-700 font-semibold">
             {value && value.name ? value.name : "Klik untuk upload foto"}
           </p>
-          <p className="text-xs text-gray-400 mt-1">PNG, JPG hingga 5MB</p>
+          <p className="text-xs text-gray-500 mt-1">PNG, JPG hingga 5MB</p>
         </label>
       );
-    }
 
-    // --- PASSWORD (Dengan Toggle Show/Hide) ---
-    if (type === "password") {
+    if (type === "password")
       return (
         <div className="relative">
           <input
@@ -106,17 +89,16 @@ export default function Form({
             onChange={onChange}
             placeholder={placeholder}
             disabled={disabled}
-            className={`${baseInputClasses} ${borderClasses} pr-10 ${className}`}
+            className={`${baseInputClasses} ${borderClasses} pr-12 ${className}`}
             {...props}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+            className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600 transition-colors"
             tabIndex="-1"
           >
             {showPassword ? (
-              // Icon Hide
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -131,7 +113,6 @@ export default function Form({
                 />
               </svg>
             ) : (
-              // Icon Show
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -155,9 +136,7 @@ export default function Form({
           </button>
         </div>
       );
-    }
 
-    // --- DEFAULT (text, email, url, dll) ---
     return (
       <input
         type={type}
@@ -174,21 +153,16 @@ export default function Form({
   };
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
-      {/* Label */}
+    <div className="flex flex-col gap-2 w-full">
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-gray-700">
+        <label htmlFor={id} className="text-sm font-semibold text-gray-700">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
-
-      {/* Input Area */}
       {renderInput()}
-
-      {/* Error Message */}
       {error && (
-        <p className="text-xs text-red-600 flex items-center gap-1 mt-0.5">
+        <p className="text-xs text-red-600 flex items-center gap-1 mt-0.5 font-medium">
           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"

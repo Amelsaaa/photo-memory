@@ -1,28 +1,17 @@
+// === src/app/components/Pagination.jsx ===
 "use client";
-
 export default function Pagination({
   currentPage,
   totalPages,
   onPageChange,
   className = "",
 }) {
-  // Jika hanya ada 1 halaman atau kurang, jangan render apa-apa
   if (totalPages <= 1) return null;
-
-  // Logika untuk menentukan nomor halaman mana yang harus ditampilkan
   const getVisiblePages = () => {
-    // Jika total halaman sedikit (<= 7), tampilkan semua
-    if (totalPages <= 7) {
+    if (totalPages <= 7)
       return Array.from({ length: totalPages }, (_, i) => i + 1);
-    }
-
-    // Jika sedang di halaman awal (1, 2, 3)
-    if (currentPage <= 3) {
-      return [1, 2, 3, 4, "...", totalPages];
-    }
-
-    // Jika sedang di halaman akhir
-    if (currentPage >= totalPages - 2) {
+    if (currentPage <= 3) return [1, 2, 3, 4, "...", totalPages];
+    if (currentPage >= totalPages - 2)
       return [
         1,
         "...",
@@ -31,9 +20,6 @@ export default function Pagination({
         totalPages - 1,
         totalPages,
       ];
-    }
-
-    // Jika sedang di halaman tengah
     return [
       1,
       "...",
@@ -44,27 +30,19 @@ export default function Pagination({
       totalPages,
     ];
   };
-
   const visiblePages = getVisiblePages();
 
-  // Class untuk tombol halaman
+  // 🎨 UI UPDATE: Styling tombol lebih modern
   const pageBtnClass = (isActive) =>
-    `min-w-[36px] h-9 flex items-center justify-center rounded-lg text-sm font-medium transition-colors duration-150 ${
-      isActive
-        ? "bg-blue-600 text-white shadow-sm"
-        : "text-gray-700 hover:bg-gray-100"
-    }`;
-
-  // Class untuk tombol Prev/Next
+    `min-w-[38px] h-10 flex items-center justify-center rounded-xl text-sm font-semibold transition-all duration-200 ${isActive ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20" : "text-gray-700 hover:bg-gray-100"}`;
   const navBtnClass =
-    "h-9 px-3 flex items-center justify-center rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent";
+    "h-10 px-4 flex items-center justify-center rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent";
 
   return (
     <nav
       aria-label="Pagination"
-      className={`flex items-center justify-center gap-1 ${className}`}
+      className={`flex items-center justify-center gap-2 ${className}`}
     >
-      {/* Tombol Previous */}
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
@@ -86,21 +64,17 @@ export default function Pagination({
         </svg>
         <span className="hidden sm:inline">Prev</span>
       </button>
-
-      {/* Nomor Halaman */}
       <div className="flex items-center gap-1">
         {visiblePages.map((page, index) => {
-          if (page === "...") {
+          if (page === "...")
             return (
               <span
                 key={`dots-${index}`}
-                className="min-w-[36px] h-9 flex items-center justify-center text-gray-400 text-sm"
+                className="min-w-[38px] h-10 flex items-center justify-center text-gray-400 text-sm font-bold"
               >
                 ...
               </span>
             );
-          }
-
           return (
             <button
               key={page}
@@ -115,8 +89,6 @@ export default function Pagination({
           );
         })}
       </div>
-
-      {/* Tombol Next */}
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}

@@ -1,5 +1,5 @@
+// === src/app/section_home/EditModal.jsx ===
 "use client";
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Form from "@/components/Form";
@@ -13,7 +13,6 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
   const [error, setError] = useState("");
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Reset & isi form dengan data post yang sedang diedit
   useEffect(() => {
     if (isOpen && post) {
       setFile(null);
@@ -21,7 +20,6 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
       setCaption(post.caption || "");
       setError("");
       setIsLoading(false);
-
       const getUser = async () => {
         const {
           data: { session },
@@ -32,7 +30,6 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
     }
   }, [isOpen, post]);
 
-  // Handle pilih file baru & buat preview
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
@@ -48,14 +45,12 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
         setPreviewUrl(null);
         return;
       }
-
       setFile(selectedFile);
       setPreviewUrl(URL.createObjectURL(selectedFile));
       setError("");
     }
   };
 
-  // Batalkan pilihan file baru (kembali ke gambar lama)
   const handleCancelNewFile = () => {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(null);
@@ -65,70 +60,40 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-
     if (!post || !currentUser) {
       setError("Data postingan tidak valid.");
       return;
     }
-
-    // Validasi: Pastikan yang edit adalah pemilik postingan (keamanan ekstra)
     if (post.user_id !== currentUser.id) {
       setError("Anda tidak memiliki izin untuk mengedit postingan ini.");
       return;
     }
-
     setIsLoading(true);
-
     try {
-      let newImageUrl = post.image_url; // Default: gunakan URL lama
-
-      // === KASUS 1: User mengganti gambar ===
+      let newImageUrl = post.image_url;
       if (file) {
-        // 1a. Extract path gambar lama dari URL untuk dihapus dari Storage
-        // Format URL: .../storage/v1/object/public/photo_memories/{user_id}/{filename}
         const oldImagePath = post.image_url.split("/photo_memories/")[1];
-
-        // 1b. Generate nama file baru yang unik
         const fileExt = file.name.split(".").pop();
         const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
         const filePath = `${currentUser.id}/${fileName}`;
-
-        // 1c. Upload gambar baru ke Storage
         const { error: uploadError } = await supabase.storage
           .from("photo_memories")
           .upload(filePath, file, { cacheControl: "3600", upsert: false });
-
         if (uploadError)
           throw new Error(`Gagal upload gambar baru: ${uploadError.message}`);
-
-        // 1d. Ambil Public URL gambar baru
         const { data: urlData } = supabase.storage
           .from("photo_memories")
           .getPublicUrl(filePath);
-
         newImageUrl = urlData.publicUrl;
-
-        // 1e. Hapus gambar lama dari Storage (agar tidak jadi sampah)
-        if (oldImagePath) {
+        if (oldImagePath)
           await supabase.storage.from("photo_memories").remove([oldImagePath]);
-        }
       }
-
-      // === KASUS 2: Update data di Database ===
       const { error: dbError } = await supabase
         .from("posts")
-        .update({
-          image_url: newImageUrl,
-          caption: caption.trim() || null,
-        })
+        .update({ image_url: newImageUrl, caption: caption.trim() || null })
         .eq("id", post.id)
-        .eq("user_id", currentUser.id); // Validasi ganda: hanya update jika memang milik user ini
-
-      if (dbError) {
-        throw new Error(`Gagal update database: ${dbError.message}`);
-      }
-
-      // === SUKSES ===
+        .eq("user_id", currentUser.id);
+      if (dbError) throw new Error(`Gagal update database: ${dbError.message}`);
       onEditSuccess();
       onClose();
     } catch (err) {
@@ -143,11 +108,13 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
   if (!isOpen || !post) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden max-h-[90vh] overflow-y-auto">
-        {/* Header Modal */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
-          <h2 className="text-xl font-bold text-gray-900">Edit Postingan</h2>
+    // 🎨 UI UPDATE: Glassmorphism dan rounded-3xl
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-black/5 rounded-3xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">
+            Edit Postingan
+          </h2>
           <button
             onClick={onClose}
             className="p-2 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
@@ -169,21 +136,18 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
           </button>
         </div>
 
-        {/* Body Modal (Form) */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Preview Gambar */}
-          <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
+          <div className="relative w-full h-56 rounded-2xl overflow-hidden bg-gray-100 border border-gray-200 shadow-inner">
             <img
               src={previewUrl || post.image_url}
               alt="Preview"
               className="w-full h-full object-cover"
             />
-            {/* Tombol hapus preview hanya muncul jika user memilih file baru */}
             {previewUrl && (
               <button
                 type="button"
                 onClick={handleCancelNewFile}
-                className="absolute top-2 right-2 bg-black/50 text-white p-1.5 rounded-full hover:bg-black/70 transition-colors"
+                className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/80 transition-colors"
                 disabled={isLoading}
                 title="Batalkan gambar baru"
               >
@@ -202,14 +166,12 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
                 </svg>
               </button>
             )}
-            {/* Badge info */}
             {!previewUrl && (
-              <span className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded">
+              <span className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium">
                 Gambar saat ini
               </span>
             )}
           </div>
-
           <Form
             label="Ganti Foto (Opsional)"
             type="file"
@@ -218,7 +180,6 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
             onChange={handleFileChange}
             disabled={isLoading}
           />
-
           <Form
             label="Caption"
             type="textarea"
@@ -229,9 +190,8 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
             rows={3}
             disabled={isLoading}
           />
-
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
               <svg
                 className="w-5 h-5 flex-shrink-0"
                 fill="currentColor"
@@ -246,8 +206,6 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
               <span>{error}</span>
             </div>
           )}
-
-          {/* Action Buttons */}
           <div className="flex gap-3 pt-2">
             <Button
               type="button"
