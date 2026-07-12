@@ -24,8 +24,11 @@ export default function PhotoGrid() {
     const from = (currentPage - 1) * itemsPerPage;
     const to = currentPage * itemsPerPage - 1;
 
-    // ✅ PERBAIKAN: Tambahkan filter status = 'active'
-    const { data: postsData } = await supabase
+    // ✅ PERBAIKAN: Tambahkan kembali .eq("status", "active")
+    // Sekarang kolom 'status' sudah ada di database, filter ini akan berjalan sempurna.
+    // Ini memastikan halaman beranda HANYA menampilkan postingan aktif,
+    // bahkan jika yang sedang login adalah admin.
+    const { data: postsData, error } = await supabase
       .from("posts")
       .select(
         `
@@ -35,19 +38,32 @@ export default function PhotoGrid() {
         )
       `,
       )
-      .eq("status", "active") // ✅ TAMBAHKAN INI: Hanya ambil postingan aktif
+      .eq("status", "active") // <--- KUNCI UTAMA: Hanya ambil post aktif
       .order("created_at", { ascending: false })
       .range(from, to);
 
-    // ✅ PERBAIKAN: Tambahkan filter status = 'active' untuk count juga
-    const { count } = await supabase
+    // Cek jika ada error dari query pertama
+    if (error) {
+      console.error("Error fetching posts:", error.message);
+      setIsLoading(false);
+      return;
+    }
+
+    // ✅ PERBAIKAN: Tambahkan kembali .eq("status", "active") untuk count
+    // Ini memastikan jumlah halaman (pagination) hanya menghitung post aktif
+    const { count, error: countError } = await supabase
       .from("posts")
       .select("*", { count: "exact", head: true })
-      .eq("status", "active"); // ✅ TAMBAHKAN INI: Hitung hanya postingan aktif
+      .eq("status", "active"); // <--- KUNCI UTAMA: Hitung hanya post aktif
+
+    if (countError) {
+      console.error("Error counting posts:", countError.message);
+    }
 
     if (postsData) {
       setPosts(postsData);
-      setTotalPages(Math.ceil(count / itemsPerPage));
+      // Pastikan count tidak null sebelum dibagi
+      setTotalPages(Math.ceil((count || 0) / itemsPerPage));
     }
 
     setIsLoading(false);

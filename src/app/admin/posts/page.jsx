@@ -136,6 +136,7 @@ export default function ManagePostsPage() {
   };
 
   // Fungsi Cleanup Manual (Hapus permanen yang sudah 30 hari)
+  // Fungsi Cleanup Manual (Hapus permanen yang sudah 30 hari)
   const handleCleanup = async () => {
     if (
       !confirm(
@@ -146,11 +147,29 @@ export default function ManagePostsPage() {
     }
 
     try {
-      const { data, error } = await supabase.rpc("cleanup_old_takedowns");
+      // Panggil function database. Sekarang return-nya adalah array URL gambar (text[])
+      const { data: deletedUrls, error } = await supabase.rpc(
+        "cleanup_old_takedowns",
+      );
 
       if (error) throw error;
 
-      alert(`✅ ${data} postingan berhasil dihapus permanen!`);
+      // ✅ PERBAIKAN: Hapus file fisik dari Storage agar tidak jadi sampah
+      if (deletedUrls && deletedUrls.length > 0) {
+        // Ekstrak path file dari URL (format: bucket_id/path)
+        const filePaths = deletedUrls
+          .map((url) => url.split("/photo_memories/")[1])
+          .filter((path) => path); // Filter jika ada URL yang formatnya tidak sesuai
+
+        if (filePaths.length > 0) {
+          await supabase.storage.from("photo_memories").remove(filePaths);
+        }
+      }
+
+      const count = deletedUrls ? deletedUrls.length : 0;
+      alert(
+        `✅ ${count} postingan berhasil dihapus permanen dari Database & Storage!`,
+      );
       fetchPosts();
     } catch (error) {
       console.error("Cleanup error:", error);

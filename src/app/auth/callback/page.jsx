@@ -8,6 +8,30 @@ export default function AuthCallbackPage() {
   const router = useRouter();
   const [status, setStatus] = useState("Memproses login...");
 
+  // ✅ ======================================================================
+  // ✅ TAMBAHAN BARU: Fungsi untuk menentukan tujuan redirect berdasarkan role & 2FA
+  // ✅ Fungsi ini meniru logika yang ada di login/page.jsx agar konsisten
+  // ✅ ======================================================================
+  const determineRedirectPath = async (userId) => {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("is_admin, totp_enabled")
+      .eq("id", userId)
+      .maybeSingle();
+
+    // Jika user adalah admin
+    if (profileData?.is_admin) {
+      if (profileData.totp_enabled) {
+        return "/2fa/verify"; // Admin yang sudah aktifkan 2FA -> minta kode
+      } else {
+        return "/2fa/setup"; // Admin yang belum aktifkan 2FA -> setup QR
+      }
+    }
+
+    // Jika user biasa
+    return "/";
+  };
+
   useEffect(() => {
     const handleCallback = async () => {
       try {
@@ -34,14 +58,12 @@ export default function AuthCallbackPage() {
         if (hash && hash.includes("access_token")) {
           setStatus("Memproses token...");
 
-          // Parse hash fragment menjadi object
           const params = new URLSearchParams(hash.substring(1));
           const access_token = params.get("access_token");
           const refresh_token = params.get("refresh_token");
 
           if (access_token && refresh_token) {
-            // Set session manual menggunakan token dari Google
-            const { data, error } = await supabase.auth.setSession({
+            const { error } = await supabase.auth.setSession({
               access_token,
               refresh_token,
             });
@@ -56,7 +78,6 @@ export default function AuthCallbackPage() {
               return;
             }
 
-            // Verifikasi session benar-benar tersimpan
             const { data: sessionData } = await supabase.auth.getSession();
             if (!sessionData.session) {
               console.error("Session tidak tersimpan setelah setSession");
@@ -68,15 +89,22 @@ export default function AuthCallbackPage() {
               return;
             }
 
-            // Bersihkan hash dari URL agar tidak ada token yang tertinggal
             window.history.replaceState(
               {},
               document.title,
               window.location.pathname,
             );
 
+            // ✅ ======================================================================
+            // ✅ PERUBAHAN: Ambil data user yang baru login, lalu tentukan URL tujuannya
+            // ✅ ======================================================================
+            const {
+              data: { user },
+            } = await supabase.auth.getUser();
+            const redirectPath = await determineRedirectPath(user.id);
+
             setStatus("Login berhasil! Mengalihkan...");
-            setTimeout(() => router.push("/"), 500);
+            setTimeout(() => router.push(redirectPath), 500); // ✅ DIUBAH: dari "/" menjadi redirectPath
             return;
           }
         }
@@ -85,8 +113,7 @@ export default function AuthCallbackPage() {
         const code = urlParams.get("code");
         if (code) {
           setStatus("Menukar kode otorisasi...");
-          const { data, error } =
-            await supabase.auth.exchangeCodeForSession(code);
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
 
           if (error) {
             console.error("Exchange code error:", error);
@@ -98,7 +125,6 @@ export default function AuthCallbackPage() {
             return;
           }
 
-          // Verifikasi session benar-benar tersimpan
           const { data: sessionData } = await supabase.auth.getSession();
           if (!sessionData.session) {
             console.error("Session tidak tersimpan setelah exchange code");
@@ -110,8 +136,16 @@ export default function AuthCallbackPage() {
             return;
           }
 
+          // ✅ ======================================================================
+          // ✅ PERUBAHAN: Ambil data user yang baru login, lalu tentukan URL tujuannya
+          // ✅ ======================================================================
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          const redirectPath = await determineRedirectPath(user.id);
+
           setStatus("Login berhasil! Mengalihkan...");
-          setTimeout(() => router.push("/"), 500);
+          setTimeout(() => router.push(redirectPath), 500); // ✅ DIUBAH: dari "/" menjadi redirectPath
           return;
         }
 
@@ -126,7 +160,7 @@ export default function AuthCallbackPage() {
     };
 
     handleCallback();
-  }, [router]); // ✅ Fixed: router adalah dependency yang stable
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">

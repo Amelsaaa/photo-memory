@@ -63,7 +63,7 @@ export default function ProfilePage() {
     const from = (currentPage - 1) * itemsPerPage;
     const to = currentPage * itemsPerPage - 1;
 
-    // ✅ PERBAIKAN: Tambahkan filter status = 'active'
+    // ✅ PERBAIKAN 1: HAPUS .eq("status", "active") dan tangkap objek 'error'
     const { data: postsData, error } = await supabase
       .from("posts")
       .select(
@@ -75,20 +75,32 @@ export default function ProfilePage() {
     `,
       )
       .eq("user_id", user.id)
-      .eq("status", "active") // ✅ TAMBAHKAN INI: Hanya tampilkan postingan aktif
+      // .eq("status", "active") <-- HAPUS BARIS INI! Tabel posts tidak punya kolom status
       .order("created_at", { ascending: false })
       .range(from, to);
 
-    // ✅ PERBAIKAN: Tambahkan filter status = 'active' untuk count juga
-    const { count } = await supabase
+    // ✅ PERBAIKAN 2: Selalu cek error dari Supabase!
+    if (error) {
+      console.error("Gagal mengambil postingan saya:", error.message);
+      setIsLoading(false);
+      return; // Hentikan proses jika ada error
+    }
+
+    // ✅ PERBAIKAN 3: HAPUS .eq("status", "active") untuk count juga, dan tangkap error
+    const { count, error: countError } = await supabase
       .from("posts")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("status", "active"); // ✅ TAMBAHKAN INI: Hitung hanya postingan aktif
+      .eq("user_id", user.id);
+    // .eq("status", "active") <-- HAPUS BARIS INI JUGA!
+
+    if (countError) {
+      console.error("Gagal menghitung postingan:", countError.message);
+    }
 
     if (postsData) {
       setPosts(postsData);
-      setTotalPages(Math.ceil(count / itemsPerPage));
+      // Pastikan count tidak null sebelum dibagi
+      setTotalPages(Math.ceil((count || 0) / itemsPerPage));
     }
 
     setIsLoading(false);

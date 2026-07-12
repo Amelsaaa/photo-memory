@@ -20,6 +20,7 @@ export default function AdminLayout({ children }) {
       data: { session },
     } = await supabase.auth.getSession();
 
+    // Jika tidak ada session, lempar ke login
     if (!session) {
       router.push("/auth/login");
       return;
@@ -27,12 +28,22 @@ export default function AdminLayout({ children }) {
 
     setUser(session.user);
 
-    const { data: profileData } = await supabase
+    // ✅ PERBAIKAN 1: Hapus 'totp_enabled' dari select
+    const { data: profileData, error } = await supabase
       .from("profiles")
-      .select("username, is_admin, totp_enabled")
+      .select("username, is_admin") // Hanya ambil username dan is_admin
       .eq("id", session.user.id)
       .maybeSingle();
 
+    // ✅ PERBAIKAN 2: Tangani error jika query gagal (misal: RLS block)
+    if (error) {
+      console.error("Error fetching profile:", error.message);
+      alert("Terjadi kesalahan saat memuat data profil.");
+      router.push("/");
+      return;
+    }
+
+    // Cek apakah user adalah admin
     if (!profileData?.is_admin) {
       alert("Akses ditolak! Halaman ini hanya untuk admin.");
       router.push("/");
@@ -41,24 +52,10 @@ export default function AdminLayout({ children }) {
 
     setProfile(profileData);
 
-    // ✅ PENTING: Cek 2FA
-    // Jika 2FA aktif tapi belum diverifikasi di session ini → redirect ke /2fa/verify
-    if (profileData.totp_enabled) {
-      const twoFactorVerified = sessionStorage.getItem(
-        `2fa_verified_${session.user.id}`,
-      );
+    // ✅ PERBAIKAN 3: HAPUS SEMUA LOGIKA REDIRECT 2FA (totp_enabled)
+    // Karena kita ingin langsung masuk dashboard, kita cukup set loading ke false.
 
-      if (twoFactorVerified !== "true") {
-        router.push("/2fa/verify");
-        return;
-      }
-    } else {
-      // 2FA belum diaktifkan → redirect ke /2fa/setup
-      router.push("/2fa/setup");
-      return;
-    }
-
-    setIsLoading(false);
+    setIsLoading(false); // Ini akan me-render halaman admin
   };
 
   if (isLoading) {
