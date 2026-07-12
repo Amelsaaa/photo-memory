@@ -127,7 +127,6 @@ export default function AuthCallbackPage() {
   }, [router]);
 
   return (
-    // 🎨 UI UPDATE: Background gradien dan card glassmorphism
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/50 ring-1 ring-black/5 text-center max-w-sm w-full">
         <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>

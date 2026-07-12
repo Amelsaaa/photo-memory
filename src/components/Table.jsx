@@ -59,7 +59,6 @@ export default function Table({
     );
 
   return (
-    // 🎨 UI UPDATE: Rounded-2xl, shadow halus, header dengan gradien tipis
     <div className="w-full overflow-x-auto rounded-2xl border border-gray-200/50 shadow-sm bg-white">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gradient-to-r from-gray-50 to-gray-100/50">
@@ -85,7 +84,6 @@ export default function Table({
         </thead>
         <tbody className="bg-white divide-y divide-gray-100">
           {data.map((row, rowIndex) => (
-            // 🎨 UI UPDATE: Hover row lebih lembut
             <tr
               key={row.id || rowIndex}
               className="hover:bg-blue-50/30 transition-colors duration-150"

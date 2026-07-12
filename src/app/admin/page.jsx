@@ -84,7 +84,6 @@ export default function AdminDashboard() {
     setIsLoading(false);
   };
 
-  // Definisi kolom untuk Table (TANPA KOLOM AKSI)
   const columns = [
     {
       key: "image_url",
@@ -137,7 +136,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard Admin</h1>
         <p className="text-gray-600 mt-1">
@@ -145,9 +143,7 @@ export default function AdminDashboard() {
         </p>
       </div>
 
-      {/* Statistik Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Total Postingan */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -176,7 +172,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Total User */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -203,7 +198,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Total Admin */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -231,7 +225,6 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      {/* Tabel Postingan Terbaru (TANPA TOMBOL AKSI) */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">Postingan Terbaru</h2>
@@ -247,7 +240,6 @@ export default function AdminDashboard() {
           emptyMessage="Belum ada postingan yang diupload user."
         />
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="mt-6">
             <Pagination

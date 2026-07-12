@@ -32,7 +32,6 @@ export default function Pagination({
   };
   const visiblePages = getVisiblePages();
 
-  // 🎨 UI UPDATE: Styling tombol lebih modern
   const pageBtnClass = (isActive) =>
     `min-w-[38px] h-10 flex items-center justify-center rounded-xl text-sm font-semibold transition-all duration-200 ${isActive ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20" : "text-gray-700 hover:bg-gray-100"}`;
   const navBtnClass =

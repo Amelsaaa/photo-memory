@@ -1,9 +1,61 @@
-// === src/app/components/Footer.jsx ===
 "use client";
+
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { supabase } from "@/lib/supabaseClient";
+
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Cek status login dan role admin
+  useEffect(() => {
+    const checkAuth = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        setUser(session.user);
+
+        // Cek apakah user adalah admin
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", session.user.id)
+          .maybeSingle();
+
+        setIsAdmin(profileData?.is_admin || false);
+      }
+    };
+
+    checkAuth();
+
+    // Listener untuk update status real-time
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        supabase
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", session.user.id)
+          .maybeSingle()
+          .then(({ data: profileData }) => {
+            setIsAdmin(profileData?.is_admin || false);
+          });
+      } else {
+        setUser(null);
+        setIsAdmin(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
-    // 🎨 UI UPDATE: Background lebih lembut, border atas halus
     <footer className="bg-gray-50 border-t border-gray-200/50 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
@@ -29,21 +81,65 @@ export default function Footer() {
               dunia.
             </p>
           </div>
+
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 text-sm font-semibold text-gray-600">
-            <a href="/" className="hover:text-blue-600 transition-colors">
+            <Link href="/" className="hover:text-blue-600 transition-colors">
               Beranda
-            </a>
-            <a href="/about" className="hover:text-blue-600 transition-colors">
+            </Link>
+            <Link
+              href="/about"
+              className="hover:text-blue-600 transition-colors"
+            >
               Tentang
-            </a>
-            <a
+            </Link>
+            <Link
               href="/contact"
               className="hover:text-blue-600 transition-colors"
             >
               Kontak
-            </a>
+            </Link>
           </div>
         </div>
+
+        {user && isAdmin && (
+          <div className="mt-8 pt-6 border-t border-gray-200/50">
+            <div className="flex justify-center">
+              <Link
+                href="/admin"
+                className="group inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:shadow-xl hover:shadow-blue-500/30 transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+              >
+                <svg
+                  className="w-5 h-5 transition-transform group-hover:rotate-12"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                <span>Admin Panel</span>
+                <svg
+                  className="w-4 h-4 transition-transform group-hover:translate-x-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        )}
+
         <div className="border-t border-gray-200/50 mt-8 pt-6">
           <p className="text-center text-xs text-gray-400 font-medium">
             &copy; {currentYear} Photo Memory. Dibuat untuk UAS BaaS. All rights

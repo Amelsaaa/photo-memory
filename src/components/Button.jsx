@@ -11,20 +11,16 @@ export default function Button({
   className = "",
   ...props
 }) {
-  // 🎨 UI UPDATE: Tambah active:scale dan transisi lebih halus
   const baseClasses =
     "inline-flex items-center justify-center font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed active:scale-[0.97]";
 
   const variantClasses = {
-    // 🎨 UI UPDATE: Gradien biru-indigo dan shadow lembut
     primary:
       "bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 focus:ring-blue-500 shadow-md shadow-blue-500/20",
     secondary:
       "bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-500",
-    // 🎨 UI UPDATE: Gradien merah-rose
     danger:
       "bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 focus:ring-red-500 shadow-md shadow-red-500/20",
-    // 🎨 UI UPDATE: Hover border lebih gelap
     outline:
       "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:ring-blue-500",
   };

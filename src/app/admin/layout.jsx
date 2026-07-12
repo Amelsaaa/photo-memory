@@ -28,14 +28,13 @@ export default function AdminLayout({ children }) {
 
     setUser(session.user);
 
-    // ✅ PERBAIKAN 1: Hapus 'totp_enabled' dari select
     const { data: profileData, error } = await supabase
       .from("profiles")
       .select("username, is_admin") // Hanya ambil username dan is_admin
       .eq("id", session.user.id)
       .maybeSingle();
 
-    // ✅ PERBAIKAN 2: Tangani error jika query gagal (misal: RLS block)
+    // Tangani error jika query gagal (misal: RLS block)
     if (error) {
       console.error("Error fetching profile:", error.message);
       alert("Terjadi kesalahan saat memuat data profil.");
@@ -52,10 +51,7 @@ export default function AdminLayout({ children }) {
 
     setProfile(profileData);
 
-    // ✅ PERBAIKAN 3: HAPUS SEMUA LOGIKA REDIRECT 2FA (totp_enabled)
-    // Karena kita ingin langsung masuk dashboard, kita cukup set loading ke false.
-
-    setIsLoading(false); // Ini akan me-render halaman admin
+    setIsLoading(false);
   };
 
   if (isLoading) {

@@ -136,7 +136,6 @@ export default function ManagePostsPage() {
   };
 
   // Fungsi Cleanup Manual (Hapus permanen yang sudah 30 hari)
-  // Fungsi Cleanup Manual (Hapus permanen yang sudah 30 hari)
   const handleCleanup = async () => {
     if (
       !confirm(
@@ -154,7 +153,7 @@ export default function ManagePostsPage() {
 
       if (error) throw error;
 
-      // ✅ PERBAIKAN: Hapus file fisik dari Storage agar tidak jadi sampah
+      // Hapus file fisik dari Storage agar tidak jadi sampah
       if (deletedUrls && deletedUrls.length > 0) {
         // Ekstrak path file dari URL (format: bucket_id/path)
         const filePaths = deletedUrls
@@ -315,7 +314,6 @@ export default function ManagePostsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Kelola Postingan</h1>
@@ -328,10 +326,8 @@ export default function ManagePostsPage() {
         </Button>
       </div>
 
-      {/* Filter & Search */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col md:flex-row gap-4">
-          {/* Status Filter */}
           <div className="flex gap-2">
             <button
               onClick={() => {
@@ -401,7 +397,6 @@ export default function ManagePostsPage() {
         </div>
       </div>
 
-      {/* Tabel Postingan */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">
@@ -436,7 +431,6 @@ export default function ManagePostsPage() {
         )}
       </div>
 
-      {/* Info Box */}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
         <div className="flex gap-3">
           <svg
@@ -473,7 +467,6 @@ export default function ManagePostsPage() {
         </div>
       </div>
 
-      {/* Modal Alasan Takedown */}
       {showReasonModal && selectedPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">

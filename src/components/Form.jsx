@@ -19,7 +19,6 @@ export default function Form({
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
-  // 🎨 UI UPDATE: Focus ring lebih lembut (ring-4 ring-blue-500/20)
   const baseInputClasses = `w-full px-4 py-3 rounded-xl border bg-white text-gray-900 placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed`;
   const borderClasses = error
     ? "border-red-300 focus:ring-red-500/20 focus:border-red-500"
@@ -43,7 +42,6 @@ export default function Form({
 
     if (type === "file")
       return (
-        // 🎨 UI UPDATE: Area upload lebih besar, rounded-2xl, dan efek hover yang jelas
         <label
           htmlFor={id}
           className={`flex flex-col items-center justify-center w-full p-8 cursor-pointer border-2 border-dashed rounded-2xl transition-all duration-300 ${error ? "border-red-300 bg-red-50" : "border-gray-300 bg-gray-50/50 hover:bg-blue-50/50 hover:border-blue-400"} ${disabled ? "opacity-60 cursor-not-allowed" : ""}`}

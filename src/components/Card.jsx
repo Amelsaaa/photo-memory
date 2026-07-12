@@ -10,9 +10,7 @@ export default function Card({ post, isOwner, isAdmin, onEdit, onDelete }) {
   });
 
   return (
-    // 🎨 UI UPDATE: Tambah group, border halus, dan hover shadow lebih besar
     <div className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col max-w-sm w-full border border-gray-100 hover:border-gray-200 group">
-      {/* 🎨 UI UPDATE: overflow-hidden agar gambar tidak meluber saat di-zoom */}
       <div className="relative w-full h-64 bg-gray-100 overflow-hidden">
         <img
           src={post.image_url}
@@ -20,7 +18,6 @@ export default function Card({ post, isOwner, isAdmin, onEdit, onDelete }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         {isOwner && (
-          // 🎨 UI UPDATE: Badge lebih modern dengan backdrop blur
           <span className="absolute top-3 right-3 bg-blue-600/90 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
             Milikmu
           </span>
@@ -43,7 +40,6 @@ export default function Card({ post, isOwner, isAdmin, onEdit, onDelete }) {
         {showActions && (
           <div className="flex gap-2 mt-auto pt-4 border-t border-gray-100">
             {isOwner && (
-              // 🎨 UI UPDATE: Tombol edit dengan styling modern
               <button
                 onClick={() => onEdit(post)}
                 className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 font-semibold text-sm py-2.5 px-3 rounded-xl transition-all duration-200 active:scale-95"

@@ -93,9 +93,7 @@ export default function TwoFactorVerifyPage() {
     );
 
   return (
-    // 🎨 UI UPDATE: Background gradien lembut
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
-      {/* 🎨 UI UPDATE: Card dengan glassmorphism dan rounded-3xl */}
       <div className="w-full max-w-md bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/50 ring-1 ring-black/5">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mb-4 shadow-xl shadow-blue-500/20 ring-4 ring-white">

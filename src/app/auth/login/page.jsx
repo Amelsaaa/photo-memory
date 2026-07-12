@@ -73,9 +73,7 @@ export default function LoginPage() {
   };
 
   return (
-    // 🎨 UI UPDATE: Background gradien全屏
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
-      {/* 🎨 UI UPDATE: Card glassmorphism dengan rounded-3xl */}
       <div className="w-full max-w-md bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/50 ring-1 ring-black/5">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">

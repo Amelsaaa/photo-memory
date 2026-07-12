@@ -101,11 +101,9 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100/50">
-      {/* 🎨 UI UPDATE: Header dengan glassmorphism */}
       <div className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-10">
           <div className="flex items-center gap-8">
-            {/* 🎨 UI UPDATE: Avatar dengan ring putih tebal dan shadow besar */}
             <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-4xl font-extrabold shadow-xl shadow-blue-500/20 ring-4 ring-white">
               {profile.username?.charAt(0).toUpperCase() || "U"}
             </div>
@@ -153,7 +151,6 @@ export default function ProfilePage() {
         )}
 
         {!isLoading && posts.length === 0 && (
-          // 🎨 UI UPDATE: Empty state dengan border dashed dan rounded-3xl
           <div className="text-center py-20 bg-white rounded-3xl shadow-sm border-2 border-dashed border-gray-200">
             <svg
               className="w-24 h-24 mx-auto text-gray-300 mb-6"

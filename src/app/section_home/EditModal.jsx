@@ -108,7 +108,6 @@ export default function EditModal({ isOpen, onClose, post, onEditSuccess }) {
   if (!isOpen || !post) return null;
 
   return (
-    // 🎨 UI UPDATE: Glassmorphism dan rounded-3xl
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-black/5 rounded-3xl w-full max-w-lg overflow-hidden max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-100">

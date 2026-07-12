@@ -48,7 +48,6 @@ export default function PhotoGrid() {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {[...Array(6)].map((_, i) => (
-            // 🎨 UI UPDATE: Skeleton dengan rounded-2xl dan border halus
             <div
               key={i}
               className="bg-white rounded-2xl shadow-sm overflow-hidden animate-pulse border border-gray-100"
@@ -68,7 +67,6 @@ export default function PhotoGrid() {
   if (posts.length === 0)
     return (
       <section className="max-w-7xl mx-auto px-4 py-20 text-center">
-        {/* 🎨 UI UPDATE: Empty state lebih modern dengan background halus */}
         <div className="max-w-md mx-auto p-8 bg-gray-50/50 rounded-3xl border-2 border-dashed border-gray-200">
           <svg
             className="w-20 h-20 mx-auto text-gray-300 mb-6"
@@ -94,7 +92,6 @@ export default function PhotoGrid() {
     );
 
   return (
-    // 🎨 UI UPDATE: Gap lebih besar (gap-8) agar kartu lebih bernapas
     <section className="max-w-7xl mx-auto px-4 py-12">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
         {posts.map((post) => (

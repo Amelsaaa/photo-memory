@@ -172,7 +172,6 @@ export default function TwoFactorSetupPage() {
                   Anda, lalu scan QR code:
                 </p>
 
-                {/* 🎨 UI UPDATE: Container QR dengan efek shadow-inner (tenggelam) */}
                 <div className="flex justify-center mb-6">
                   <div className="bg-gradient-to-br from-gray-50 to-white p-6 rounded-2xl border border-gray-200 shadow-inner">
                     {qrCodeUrl ? (

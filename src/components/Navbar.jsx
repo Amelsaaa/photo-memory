@@ -50,7 +50,6 @@ export default function Navbar() {
   const isActive = (path) => pathname === path;
 
   return (
-    // 🎨 UI UPDATE: Glassmorphism effect (bg-white/80 backdrop-blur-xl) dan shadow sangat halus
     <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
@@ -59,7 +58,6 @@ export default function Navbar() {
               href="/"
               className="flex items-center gap-2 text-xl font-extrabold text-gray-900 hover:text-blue-600 transition-colors tracking-tight"
             >
-              {/* 🎨 UI UPDATE: Ikon logo dengan gradien */}
               <svg
                 className="w-8 h-8 text-blue-600"
                 fill="none"
@@ -171,7 +169,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* 🎨 UI UPDATE: Mobile menu dengan glassmorphism */}
       {isMenuOpen && (
         <div className="md:hidden bg-white/95 backdrop-blur-xl border-t border-gray-200/50 shadow-lg">
           <div className="px-4 pt-2 pb-3 space-y-1">

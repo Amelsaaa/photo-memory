@@ -77,13 +77,10 @@ export default function TwoFactorSettingsPage() {
     );
 
   return (
-    // 🎨 UI UPDATE: Background gradien halus
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        {/* 🎨 UI UPDATE: Card dengan rounded-2xl dan shadow lembut */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 p-8">
           <div className="flex items-center gap-4 mb-8">
-            {/* 🎨 UI UPDATE: Ikon dengan ring putih dan shadow */}
             <div
               className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ring-4 ring-white ${profile?.totp_enabled ? "bg-gradient-to-br from-green-400 to-emerald-500" : "bg-gradient-to-br from-red-400 to-rose-500"}`}
             >
@@ -111,7 +108,6 @@ export default function TwoFactorSettingsPage() {
             </div>
           </div>
 
-          {/* 🎨 UI UPDATE: Status card dengan rounded-xl dan shadow-inner */}
           <div
             className={`rounded-xl p-6 mb-6 border-2 shadow-inner ${profile?.totp_enabled ? "bg-green-50/50 border-green-200" : "bg-red-50/50 border-red-200"}`}
           >
@@ -135,7 +131,6 @@ export default function TwoFactorSettingsPage() {
           </div>
 
           {profile?.totp_enabled ? (
-            // 🎨 UI UPDATE: Info box dengan rounded-xl
             <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5 mb-6">
               <div className="flex gap-3">
                 <svg

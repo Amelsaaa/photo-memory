@@ -30,14 +30,11 @@ export default function HeroSection({ onUploadClick }) {
   if (!user) return null;
 
   return (
-    // 🎨 UI UPDATE: Gradien 3 warna, padding lebih lega, overflow hidden untuk dekorasi
     <section className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 text-white py-24 px-4 relative overflow-hidden">
-      {/* 🎨 UI UPDATE: Dekorasi blur circles di background */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
 
       <div className="max-w-7xl mx-auto text-center relative z-10">
-        {/* 🎨 UI UPDATE: Font lebih besar, extrabold, tracking tight, dan drop shadow */}
         <h1 className="text-4xl md:text-6xl font-extrabold mb-6 tracking-tight drop-shadow-lg">
           Selamat Datang di Photo Memory!
         </h1>
@@ -46,14 +43,13 @@ export default function HeroSection({ onUploadClick }) {
           bersama orang-orang tersayang.
         </p>
 
-        {/* 🎨 UI UPDATE: Tombol dengan shadow besar dan efek hover naik ke atas */}
         <Button
           onClick={onUploadClick}
           variant="secondary"
           size="lg"
           className="!bg-white !text-blue-600 hover:!bg-gray-50 font-bold shadow-xl shadow-blue-900/20 hover:-translate-y-1 transition-all duration-300"
         >
-          ✨ Upload Kenangan Baru
+          Upload Kenangan Baru
         </Button>
       </div>
     </section>
