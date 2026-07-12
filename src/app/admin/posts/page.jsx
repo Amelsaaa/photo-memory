@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Table from "@/components/Table";
@@ -12,11 +13,12 @@ export default function ManagePostsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all"); // all, active, takedown
   const [isProcessing, setIsProcessing] = useState(null);
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [takedownReason, setTakedownReason] = useState("");
+
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -25,42 +27,72 @@ export default function ManagePostsPage() {
 
   const fetchPosts = async () => {
     setIsLoading(true);
+
     const from = (currentPage - 1) * itemsPerPage;
     const to = currentPage * itemsPerPage - 1;
+
     let query = supabase
       .from("posts")
-      .select(`*, profiles ( username )`, { count: "exact" })
+      .select(
+        `
+        *,
+        profiles (
+          username
+        )
+      `,
+        { count: "exact" },
+      )
       .order("created_at", { ascending: false })
       .range(from, to);
-    if (statusFilter !== "all") query = query.eq("status", statusFilter);
-    if (searchQuery.trim())
+
+    // Filter berdasarkan status
+    if (statusFilter !== "all") {
+      query = query.eq("status", statusFilter);
+    }
+
+    // Filter berdasarkan search query
+    if (searchQuery.trim()) {
       query = query.or(
         `caption.ilike.%${searchQuery}%,profiles.username.ilike.%${searchQuery}%`,
       );
+    }
+
     const { data: postsData, error, count } = await query;
-    if (error) console.error("Error fetching posts:", error);
+
+    if (error) {
+      console.error("Error fetching posts:", error);
+    }
+
     if (postsData) {
       setPosts(postsData);
       setTotalPages(Math.ceil(count / itemsPerPage));
     }
+
     setIsLoading(false);
   };
 
+  // Fungsi Takedown (Buka Modal untuk alasan)
   const handleTakedownClick = (post) => {
     setSelectedPost(post);
     setTakedownReason("");
     setShowReasonModal(true);
   };
 
+  // Fungsi Takedown (Setelah konfirmasi alasan)
   const handleTakedownConfirm = async () => {
     if (!selectedPost) return;
+
     setIsProcessing(selectedPost.id);
+
     try {
+      // Panggil function database untuk takedown
       const { error } = await supabase.rpc("takedown_post", {
         p_post_id: selectedPost.id,
         p_reason: takedownReason.trim() || null,
       });
+
       if (error) throw error;
+
       alert("✅ Postingan berhasil di-takedown!");
       setShowReasonModal(false);
       setSelectedPost(null);
@@ -73,19 +105,26 @@ export default function ManagePostsPage() {
     }
   };
 
+  // Fungsi Restore
   const handleRestore = async (post) => {
     if (
       !confirm(
         `Restore postingan dari "${post.profiles?.username || "User"}"?\n\nPostingan akan muncul kembali di halaman publik.`,
       )
-    )
+    ) {
       return;
+    }
+
     setIsProcessing(post.id);
+
     try {
+      // Panggil function database untuk restore
       const { error } = await supabase.rpc("restore_post", {
         p_post_id: post.id,
       });
+
       if (error) throw error;
+
       alert("✅ Postingan berhasil di-restore!");
       fetchPosts();
     } catch (error) {
@@ -96,25 +135,37 @@ export default function ManagePostsPage() {
     }
   };
 
+  // Fungsi Cleanup Manual (Hapus permanen yang sudah 30 hari)
+  // Fungsi Cleanup Manual (Hapus permanen yang sudah 30 hari)
   const handleCleanup = async () => {
     if (
       !confirm(
         "Hapus permanen semua postingan yang sudah ditakedown lebih dari 30 hari?\n\nTindakan ini tidak bisa dibatalkan!",
       )
-    )
+    ) {
       return;
+    }
+
     try {
+      // Panggil function database. Sekarang return-nya adalah array URL gambar (text[])
       const { data: deletedUrls, error } = await supabase.rpc(
         "cleanup_old_takedowns",
       );
+
       if (error) throw error;
+
+      // ✅ PERBAIKAN: Hapus file fisik dari Storage agar tidak jadi sampah
       if (deletedUrls && deletedUrls.length > 0) {
+        // Ekstrak path file dari URL (format: bucket_id/path)
         const filePaths = deletedUrls
           .map((url) => url.split("/photo_memories/")[1])
-          .filter((path) => path);
-        if (filePaths.length > 0)
+          .filter((path) => path); // Filter jika ada URL yang formatnya tidak sesuai
+
+        if (filePaths.length > 0) {
           await supabase.storage.from("photo_memories").remove(filePaths);
+        }
       }
+
       const count = deletedUrls ? deletedUrls.length : 0;
       alert(
         `✅ ${count} postingan berhasil dihapus permanen dari Database & Storage!`,
@@ -131,12 +182,14 @@ export default function ManagePostsPage() {
     setCurrentPage(1);
     fetchPosts();
   };
+
   const handleClearSearch = () => {
     setSearchQuery("");
     setCurrentPage(1);
     setTimeout(() => fetchPosts(), 0);
   };
 
+  // Helper untuk menghitung sisa hari sebelum auto-delete
   const getDaysUntilAutoDelete = (takedownAt) => {
     if (!takedownAt) return null;
     const takedownDate = new Date(takedownAt);
@@ -147,6 +200,7 @@ export default function ManagePostsPage() {
     return diffDays > 0 ? diffDays : 0;
   };
 
+  // Definisi kolom untuk Table
   const columns = [
     {
       key: "image_url",
@@ -156,7 +210,7 @@ export default function ManagePostsPage() {
         <img
           src={value}
           alt="thumb"
-          className="w-20 h-20 rounded-xl object-cover border border-gray-200 shadow-sm"
+          className="w-20 h-20 rounded-lg object-cover border border-gray-200 shadow-sm"
         />
       ),
     },
@@ -176,11 +230,11 @@ export default function ManagePostsPage() {
       key: "profiles",
       label: "Pemilik",
       render: (value) => (
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-md">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
             {value?.username?.charAt(0).toUpperCase() || "U"}
           </div>
-          <p className="text-sm font-bold text-gray-900">
+          <p className="text-sm font-medium text-gray-900">
             {value?.username || "Anonim"}
           </p>
         </div>
@@ -190,21 +244,21 @@ export default function ManagePostsPage() {
       key: "status",
       label: "Status",
       render: (value, row) => {
-        if (value === "active")
+        if (value === "active") {
           return (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-800 ring-1 ring-green-200">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               Active
             </span>
           );
-        else if (value === "takedown") {
+        } else if (value === "takedown") {
           const daysLeft = getDaysUntilAutoDelete(row.takedown_at);
           return (
             <div>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 ring-1 ring-red-200">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                 Takedown
               </span>
               {daysLeft !== null && (
-                <p className="text-xs text-gray-500 mt-1 font-medium">
+                <p className="text-xs text-gray-500 mt-1">
                   {daysLeft > 0 ? `${daysLeft} hari lagi` : "Akan dihapus"}
                 </p>
               )}
@@ -218,7 +272,7 @@ export default function ManagePostsPage() {
       key: "created_at",
       label: "Tanggal",
       render: (value) => (
-        <p className="text-sm text-gray-600 font-medium">
+        <p className="text-sm text-gray-600">
           {new Date(value).toLocaleDateString("id-ID", {
             day: "numeric",
             month: "short",
@@ -229,8 +283,9 @@ export default function ManagePostsPage() {
     },
   ];
 
+  // Render aksi untuk setiap baris
   const renderActions = (row) => {
-    if (row.status === "active")
+    if (row.status === "active") {
       return (
         <Button
           variant="danger"
@@ -242,7 +297,7 @@ export default function ManagePostsPage() {
           Takedown
         </Button>
       );
-    else if (row.status === "takedown")
+    } else if (row.status === "takedown") {
       return (
         <Button
           variant="primary"
@@ -254,17 +309,17 @@ export default function ManagePostsPage() {
           Restore
         </Button>
       );
+    }
     return null;
   };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-            Kelola Postingan
-          </h1>
-          <p className="text-gray-600 mt-1 font-medium">
+          <h1 className="text-3xl font-bold text-gray-900">Kelola Postingan</h1>
+          <p className="text-gray-600 mt-1">
             Kelola postingan dengan sistem takedown sementara
           </p>
         </div>
@@ -273,27 +328,53 @@ export default function ManagePostsPage() {
         </Button>
       </div>
 
-      {/* 🎨 UI UPDATE: Filter card dengan glassmorphism */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200/50 p-6">
+      {/* Filter & Search */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col md:flex-row gap-4">
+          {/* Status Filter */}
           <div className="flex gap-2">
-            {[
-              { label: "Semua", val: "all", color: "blue" },
-              { label: "Active", val: "active", color: "green" },
-              { label: "Takedown", val: "takedown", color: "red" },
-            ].map((btn) => (
-              <button
-                key={btn.val}
-                onClick={() => {
-                  setStatusFilter(btn.val);
-                  setCurrentPage(1);
-                }}
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 active:scale-95 ${statusFilter === btn.val ? `bg-${btn.color}-600 text-white shadow-md shadow-${btn.color}-500/20` : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-              >
-                {btn.label}
-              </button>
-            ))}
+            <button
+              onClick={() => {
+                setStatusFilter("all");
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === "all"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Semua
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter("active");
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === "active"
+                  ? "bg-green-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Active
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter("takedown");
+                setCurrentPage(1);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                statusFilter === "takedown"
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Takedown
+            </button>
           </div>
+
+          {/* Search Bar */}
           <form onSubmit={handleSearch} className="flex-1 flex gap-3">
             <div className="flex-1">
               <Form
@@ -320,21 +401,22 @@ export default function ManagePostsPage() {
         </div>
       </div>
 
-      {/* 🎨 UI UPDATE: Table card dengan rounded-2xl */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200/50 p-6">
+      {/* Tabel Postingan */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900 tracking-tight">
-            Daftar Postingan{" "}
+          <h2 className="text-xl font-bold text-gray-900">
+            Daftar Postingan
             {statusFilter !== "all" && (
               <span className="text-sm font-normal text-gray-500 ml-2">
                 (Filter: {statusFilter})
               </span>
             )}
           </h2>
-          <span className="text-sm text-gray-500 font-medium bg-gray-100 px-3 py-1 rounded-full">
+          <span className="text-sm text-gray-500">
             Halaman {currentPage} dari {totalPages}
           </span>
         </div>
+
         <Table
           columns={columns}
           data={posts}
@@ -342,6 +424,7 @@ export default function ManagePostsPage() {
           isLoading={isLoading}
           emptyMessage="Tidak ada postingan ditemukan."
         />
+
         {totalPages > 1 && (
           <div className="mt-6">
             <Pagination
@@ -353,10 +436,11 @@ export default function ManagePostsPage() {
         )}
       </div>
 
-      <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-5">
+      {/* Info Box */}
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
         <div className="flex gap-3">
           <svg
-            className="w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5"
+            className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -367,8 +451,8 @@ export default function ManagePostsPage() {
             />
           </svg>
           <div className="text-sm text-blue-800">
-            <p className="font-bold mb-2">Sistem Takedown Sementara</p>
-            <ul className="list-disc list-inside space-y-1 text-blue-700 font-medium">
+            <p className="font-semibold mb-1">Sistem Takedown Sementara</p>
+            <ul className="list-disc list-inside space-y-1 text-blue-700">
               <li>
                 <strong>Takedown:</strong> Postingan disembunyikan dari publik,
                 tapi masih bisa di-restore.
@@ -389,20 +473,21 @@ export default function ManagePostsPage() {
         </div>
       </div>
 
-      {/* 🎨 UI UPDATE: Modal dengan glassmorphism dan rounded-3xl */}
+      {/* Modal Alasan Takedown */}
       {showReasonModal && selectedPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white/95 backdrop-blur-xl shadow-2xl ring-1 ring-black/5 rounded-3xl w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
             <div className="p-6 border-b border-gray-100">
-              <h2 className="text-xl font-bold text-gray-900 tracking-tight">
+              <h2 className="text-xl font-bold text-gray-900">
                 Alasan Takedown
               </h2>
-              <p className="text-sm text-gray-500 mt-1 font-medium">
+              <p className="text-sm text-gray-500 mt-1">
                 Postingan dari{" "}
                 <strong>{selectedPost.profiles?.username}</strong> akan
                 disembunyikan dari publik.
               </p>
             </div>
+
             <div className="p-6 space-y-4">
               <Form
                 label="Alasan (Opsional)"
@@ -413,14 +498,16 @@ export default function ManagePostsPage() {
                 onChange={(e) => setTakedownReason(e.target.value)}
                 rows={3}
               />
-              <div className="bg-amber-50/50 border border-amber-100 rounded-xl p-4">
-                <p className="text-sm text-amber-800 font-medium">
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-sm text-yellow-800">
                   <strong>Info:</strong> Postingan akan otomatis dihapus
                   permanen setelah 30 hari jika tidak di-restore.
                 </p>
               </div>
             </div>
-            <div className="flex gap-3 p-6 border-t border-gray-100 bg-gray-50/50">
+
+            <div className="flex gap-3 p-6 border-t border-gray-100 bg-gray-50">
               <Button
                 variant="outline"
                 onClick={() => {
